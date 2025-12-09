@@ -6,14 +6,44 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AD7505862EDE846500DB52FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AD75057F2EDE846500DB52FE /* Assets.xcassets */; };
+		AD75058B2EDF1AD700DB52FE /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD75058A2EDF1ACF00DB52FE /* HomeView.swift */; };
+		AD75058D2EDF1CF300DB52FE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD75058C2EDF1CEB00DB52FE /* MainTabView.swift */; };
+		AD7505912EDF1E6200DB52FE /* DebtView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7505902EDF1E5D00DB52FE /* DebtView.swift */; };
+		AD7505A12EDFB73D00DB52FE /* PlansView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7505A02EDFB73D00DB52FE /* PlansView.swift */; };
+		AD7505A32EDFB73D00DB52FE /* SaveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7505A22EDFB73D00DB52FE /* SaveView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		AD621D692EDE74C7003766EC /* OnBoarding.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OnBoarding.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD621D692EDE74C7003766EC /* IncomeLedger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IncomeLedger.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD75057F2EDE846500DB52FE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AD75058A2EDF1ACF00DB52FE /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		AD75058C2EDF1CEB00DB52FE /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		AD7505902EDF1E5D00DB52FE /* DebtView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtView.swift; sourceTree = "<group>"; };
+		AD7505A02EDFB73D00DB52FE /* PlansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlansView.swift; sourceTree = "<group>"; };
+		AD7505A22EDFB73D00DB52FE /* SaveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		AD621D6B2EDE74C7003766EC /* OnBoarding */ = {
+		AD621D6B2EDE74C7003766EC /* Onboarding */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = OnBoarding;
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		AD7505872EDE84F100DB52FE /* App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = App;
+			sourceTree = "<group>";
+		};
+		AD7505892EDE852700DB52FE /* Utils */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		ADC4AADF2EE7990500161E40 /* Income */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Income;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +62,16 @@
 		AD621D602EDE74C7003766EC = {
 			isa = PBXGroup;
 			children = (
-				AD621D6B2EDE74C7003766EC /* OnBoarding */,
+				AD7505872EDE84F100DB52FE /* App */,
+				AD621D6B2EDE74C7003766EC /* Onboarding */,
+				ADC4AADF2EE7990500161E40 /* Income */,
+				AD7505892EDE852700DB52FE /* Utils */,
+				AD75057F2EDE846500DB52FE /* Assets.xcassets */,
+				AD75058C2EDF1CEB00DB52FE /* MainTabView.swift */,
+				AD75058A2EDF1ACF00DB52FE /* HomeView.swift */,
+				AD7505902EDF1E5D00DB52FE /* DebtView.swift */,
+				AD7505A02EDFB73D00DB52FE /* PlansView.swift */,
+				AD7505A22EDFB73D00DB52FE /* SaveView.swift */,
 				AD621D6A2EDE74C7003766EC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +79,7 @@
 		AD621D6A2EDE74C7003766EC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AD621D692EDE74C7003766EC /* OnBoarding.app */,
+				AD621D692EDE74C7003766EC /* IncomeLedger.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +87,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AD621D682EDE74C7003766EC /* OnBoarding */ = {
+		AD621D682EDE74C7003766EC /* IncomeLedger */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AD621D742EDE74C9003766EC /* Build configuration list for PBXNativeTarget "OnBoarding" */;
+			buildConfigurationList = AD621D742EDE74C9003766EC /* Build configuration list for PBXNativeTarget "IncomeLedger" */;
 			buildPhases = (
 				AD621D652EDE74C7003766EC /* Sources */,
 				AD621D662EDE74C7003766EC /* Frameworks */,
@@ -61,13 +100,16 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				AD621D6B2EDE74C7003766EC /* OnBoarding */,
+				AD621D6B2EDE74C7003766EC /* Onboarding */,
+				AD7505872EDE84F100DB52FE /* App */,
+				AD7505892EDE852700DB52FE /* Utils */,
+				ADC4AADF2EE7990500161E40 /* Income */,
 			);
-			name = OnBoarding;
+			name = IncomeLedger;
 			packageProductDependencies = (
 			);
 			productName = OnBoarding;
-			productReference = AD621D692EDE74C7003766EC /* OnBoarding.app */;
+			productReference = AD621D692EDE74C7003766EC /* IncomeLedger.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +127,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AD621D642EDE74C7003766EC /* Build configuration list for PBXProject "OnBoarding" */;
+			buildConfigurationList = AD621D642EDE74C7003766EC /* Build configuration list for PBXProject "IncomeLedger" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +141,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AD621D682EDE74C7003766EC /* OnBoarding */,
+				AD621D682EDE74C7003766EC /* IncomeLedger */,
 			);
 		};
 /* End PBXProject section */
@@ -109,6 +151,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD7505862EDE846500DB52FE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +162,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD7505A12EDFB73D00DB52FE /* PlansView.swift in Sources */,
+				AD75058B2EDF1AD700DB52FE /* HomeView.swift in Sources */,
+				AD7505912EDF1E6200DB52FE /* DebtView.swift in Sources */,
+				AD7505A32EDFB73D00DB52FE /* SaveView.swift in Sources */,
+				AD75058D2EDF1CF300DB52FE /* MainTabView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,6 +294,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SKDYSSVFX7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -260,12 +309,12 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jme.OnBoarding;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jme.IncomeLedger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -288,6 +337,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SKDYSSVFX7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -302,12 +352,12 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jme.OnBoarding;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jme.IncomeLedger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -326,7 +376,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AD621D642EDE74C7003766EC /* Build configuration list for PBXProject "OnBoarding" */ = {
+		AD621D642EDE74C7003766EC /* Build configuration list for PBXProject "IncomeLedger" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AD621D722EDE74C9003766EC /* Debug */,
@@ -335,7 +385,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AD621D742EDE74C9003766EC /* Build configuration list for PBXNativeTarget "OnBoarding" */ = {
+		AD621D742EDE74C9003766EC /* Build configuration list for PBXNativeTarget "IncomeLedger" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AD621D752EDE74C9003766EC /* Debug */,

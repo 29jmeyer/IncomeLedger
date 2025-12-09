@@ -10,7 +10,7 @@ import SwiftUI
 
 enum Timing {
     // Tap forward timing (slide)
-    static let slide: Double = 1.75
+    static let slide: Double = 2.5
     // Dot-jump timing (backward fade)
     static let backFade: Double = 0.5
 }
@@ -68,13 +68,23 @@ struct ContentView: View {
                     .ignoresSafeArea()
                 
                 if onboardingDone {
-                    instructionsView
-                        .transition(.opacity)
-                        .animation(.easeInOut(duration: 0.35), value: onboardingDone)
+                    // After onboarding → go to HomeView
+                    ZStack {
+                        financeBackground
+                            .ignoresSafeArea()
+
+                        MainTabView()   // ← Your main page for now
+                    }
                 } else {
-                    onboarding
-                        .transition(.opacity)
+                    // Show onboarding
+                    ZStack {
+                        financeBackground
+                            .ignoresSafeArea()
+                        
+                        onboarding
+                    }
                 }
+
             }
             .navigationTitle("")
             #if os(iOS) || os(tvOS) || os(visionOS)
@@ -137,8 +147,7 @@ struct ContentView: View {
                         }
                     }
                 )
-                // Transition depends on destination step
-                .transition(transitionForCurrentStep)
+                .id(stepIndex)
                 // Manual fade for dot jumps (no transition used)
                 .opacity(fadeOpacity)
             }
@@ -154,15 +163,9 @@ struct ContentView: View {
     
     // Use slide for most steps; for slide 4 (index 3) use fade
     private var transitionForCurrentStep: AnyTransition {
-        if stepIndex == 3 {
-            return .opacity
-        } else {
-            return .asymmetric(
-                insertion: .move(edge: .trailing).combined(with: .opacity),
-                removal: .move(edge: .leading).combined(with: .opacity)
-            )
-        }
+        .opacity
     }
+
     
     private var canGoNext: Bool {
         stepIndex < Self.steps.count - 1

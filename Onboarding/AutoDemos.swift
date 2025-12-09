@@ -134,6 +134,17 @@ struct ShiftListAutoDemo: View {
     private let betweenLoopsPause: Double = 0.6
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
     
+    private func amountWithoutCents(_ value: Double) -> String {
+        let rounded = Int(value.rounded())
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 0
+        formatter.minimumFractionDigits = 0
+        formatter.currencyCode = currencyCode
+        return formatter.string(from: NSNumber(value: rounded)) ?? "$\(rounded)"
+    }
+
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             shiftRow(start: "8:00 AM", end: "4:00 PM", hours: 8.0, amount: 216)
@@ -167,16 +178,21 @@ struct ShiftListAutoDemo: View {
             Text("\(start) – \(end)")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white)
+                .lineLimit(1)              // don't wrap
+                .minimumScaleFactor(0.7)   // shrink a bit if needed
+                .layoutPriority(1)         // give it space before other trailing stuff
+
             
             Spacer(minLength: 8)
             
             Text("\(hours.formatted(.number.precision(.fractionLength(1))))h")
                 .font(.subheadline.monospacedDigit())
                 .foregroundStyle(.white.opacity(0.95))
-            
-            Text(amount.formatted(.currency(code: currencyCode)))
+
+            Text(amountWithoutCents(amount))
                 .font(.subheadline.monospacedDigit().weight(.semibold))
                 .foregroundStyle(.white)
+
         }
     }
     
@@ -543,6 +559,10 @@ struct OvertimeSplitDemo: View {
                 HStack(spacing: 8) {
                     Text(regularBadgeText)
                         .font(.footnote.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                        .layoutPriority(1)
+                        .allowsTightening(true)
                         .foregroundStyle(.black)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -557,6 +577,10 @@ struct OvertimeSplitDemo: View {
                     
                     Text(otBadgeText)
                         .font(.footnote.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                        .layoutPriority(1)
+                        .allowsTightening(true)
                         .foregroundStyle(.black)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
