@@ -8,24 +8,34 @@
 
 /* Begin PBXBuildFile section */
 		AD7505862EDE846500DB52FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AD75057F2EDE846500DB52FE /* Assets.xcassets */; };
-		AD75058B2EDF1AD700DB52FE /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD75058A2EDF1ACF00DB52FE /* HomeView.swift */; };
-		AD75058D2EDF1CF300DB52FE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD75058C2EDF1CEB00DB52FE /* MainTabView.swift */; };
-		AD7505912EDF1E6200DB52FE /* DebtView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7505902EDF1E5D00DB52FE /* DebtView.swift */; };
-		AD7505A12EDFB73D00DB52FE /* PlansView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7505A02EDFB73D00DB52FE /* PlansView.swift */; };
-		AD7505A32EDFB73D00DB52FE /* SaveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7505A22EDFB73D00DB52FE /* SaveView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AD621D692EDE74C7003766EC /* IncomeLedger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IncomeLedger.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD75057F2EDE846500DB52FE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		AD75058A2EDF1ACF00DB52FE /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		AD75058C2EDF1CEB00DB52FE /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		AD7505902EDF1E5D00DB52FE /* DebtView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtView.swift; sourceTree = "<group>"; };
-		AD7505A02EDFB73D00DB52FE /* PlansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlansView.swift; sourceTree = "<group>"; };
-		AD7505A22EDFB73D00DB52FE /* SaveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		AD4E5B5C2EE8114A00893638 /* Home */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Home;
+			sourceTree = "<group>";
+		};
+		AD4E5B5D2EE8115600893638 /* Debt */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Debt;
+			sourceTree = "<group>";
+		};
+		AD4E5B5E2EE8116200893638 /* Plans */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Plans;
+			sourceTree = "<group>";
+		};
+		AD4E5B5F2EE8116D00893638 /* Save */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Save;
+			sourceTree = "<group>";
+		};
 		AD621D6B2EDE74C7003766EC /* Onboarding */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Onboarding;
@@ -65,13 +75,12 @@
 				AD7505872EDE84F100DB52FE /* App */,
 				AD621D6B2EDE74C7003766EC /* Onboarding */,
 				ADC4AADF2EE7990500161E40 /* Income */,
+				AD4E5B5D2EE8115600893638 /* Debt */,
+				AD4E5B5C2EE8114A00893638 /* Home */,
+				AD4E5B5F2EE8116D00893638 /* Save */,
+				AD4E5B5E2EE8116200893638 /* Plans */,
 				AD7505892EDE852700DB52FE /* Utils */,
 				AD75057F2EDE846500DB52FE /* Assets.xcassets */,
-				AD75058C2EDF1CEB00DB52FE /* MainTabView.swift */,
-				AD75058A2EDF1ACF00DB52FE /* HomeView.swift */,
-				AD7505902EDF1E5D00DB52FE /* DebtView.swift */,
-				AD7505A02EDFB73D00DB52FE /* PlansView.swift */,
-				AD7505A22EDFB73D00DB52FE /* SaveView.swift */,
 				AD621D6A2EDE74C7003766EC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -100,6 +109,10 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				AD4E5B5C2EE8114A00893638 /* Home */,
+				AD4E5B5D2EE8115600893638 /* Debt */,
+				AD4E5B5E2EE8116200893638 /* Plans */,
+				AD4E5B5F2EE8116D00893638 /* Save */,
 				AD621D6B2EDE74C7003766EC /* Onboarding */,
 				AD7505872EDE84F100DB52FE /* App */,
 				AD7505892EDE852700DB52FE /* Utils */,
@@ -162,11 +175,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AD7505A12EDFB73D00DB52FE /* PlansView.swift in Sources */,
-				AD75058B2EDF1AD700DB52FE /* HomeView.swift in Sources */,
-				AD7505912EDF1E6200DB52FE /* DebtView.swift in Sources */,
-				AD7505A32EDFB73D00DB52FE /* SaveView.swift in Sources */,
-				AD75058D2EDF1CF300DB52FE /* MainTabView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
