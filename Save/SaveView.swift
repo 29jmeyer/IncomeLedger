@@ -31,6 +31,10 @@ struct SaveView: View {
     // Controls the + flow
     @State private var showingAddGoal = false
 
+    // Deletion state for jars
+    @State private var goalPendingDelete: SavingsGoal? = nil
+    @State private var showDeleteGoalAlert: Bool = false
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -74,8 +78,39 @@ struct SaveView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 16)
 
-                    // For now: empty body space (no Total Saved / jars yet)
-                    Spacer(minLength: 40)
+                    // Jars grid/list
+                    if goals.isEmpty {
+                        Spacer(minLength: 40)
+                    } else {
+                        // Simple adaptive grid of jars
+                        let columns = [
+                            GridItem(.adaptive(minimum: 120), spacing: 20)
+                        ]
+                        LazyVGrid(columns: columns, spacing: 24) {
+                            ForEach(goals) { goal in
+                                // How full the jar is (0…1). Protect against /0.
+                                let ratio = goal.targetAmount > 0
+                                    ? goal.currentSaved / goal.targetAmount
+                                    : 0
+
+                                SavingsJarView(
+                                    name: goal.name,        // 👈 this is drawn INSIDE the jar
+                                    fillAmount: ratio,
+                                    onDelete: {
+                                        goalPendingDelete = goal
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                            showDeleteGoalAlert = true
+                                        }
+                                    }
+                                )
+                                // Smaller overall footprint for the jar
+                                .frame(width: 130, height: 170)
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                        .padding(.bottom, 24)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.clear)
@@ -96,6 +131,104 @@ struct SaveView: View {
         .fullScreenCover(isPresented: $showingAddGoal) {
             AddSavingsGoalFlow(goals: $goals)
         }
+        // Delete overlay matching the Income page style
+        .overlay {
+            if showDeleteGoalAlert, let goal = goalPendingDelete {
+                deleteDialogOverlay(
+                    title: "Delete savings goal?",
+                    message: "This will remove \"\(goal.name)\" from your goals.",
+                    deleteLabel: "Delete goal",
+                    onDelete: {
+                        if let index = goals.firstIndex(where: { $0.id == goal.id }) {
+                            goals.remove(at: index)
+                        }
+                    },
+                    onDismiss: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            showDeleteGoalAlert = false
+                            goalPendingDelete = nil
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    // Reusable delete dialog overlay (copied to match IncomeView style)
+    @ViewBuilder
+    private func deleteDialogOverlay(
+        title: String,
+        message: String,
+        deleteLabel: String,
+        onDelete: @escaping () -> Void,
+        onDismiss: @escaping () -> Void
+    ) -> some View {
+        ZStack {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        onDismiss()
+                    }
+                }
+
+            VStack(spacing: 14) {
+                Text(title)
+                    .font(.headline)
+
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                VStack(spacing: 10) {
+                    Button {
+                        onDelete()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            onDismiss()
+                        }
+                    } label: {
+                        Text(deleteLabel)
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Color.red)
+                            )
+                            .foregroundColor(.white)
+                    }
+
+                    Button {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            onDismiss()
+                        }
+                    } label: {
+                        Text("Cancel")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.gray.opacity(0.35), lineWidth: 1)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(Color.white)
+                                    )
+                            )
+                            .foregroundColor(.primary)
+                    }
+                }
+            }
+            .padding(18)
+            .frame(minWidth: 260, maxWidth: 360)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 10)
+            )
+            .padding(.horizontal, 24)
+            .transition(.scale(scale: 0.95).combined(with: .opacity))
+        }
     }
 }
-

@@ -197,6 +197,12 @@ struct AddSavingsGoalFlow: View {
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(16)
+                // 13-character hard limit (counts all characters, including spaces/symbols)
+                .onChange(of: name) { newValue in
+                    if newValue.count > 13 {
+                        name = String(newValue.prefix(13))
+                    }
+                }
 
             Button(action: { step = 1 }) {
                 Text("Next")
