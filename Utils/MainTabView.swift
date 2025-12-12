@@ -138,4 +138,3 @@ struct MainTabView: View {
         .offset(y: -28)   // lift it above the bar, like before
     }
 }
-

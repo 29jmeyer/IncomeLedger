@@ -13,61 +13,81 @@ struct SavingsJarView: View {
     }
 
     var body: some View {
-        ZStack {
-            // ---- JAR IMAGE ----
-            Image("jar")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 200)       // Adjust size here if needed
-                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+        GeometryReader { geo in
+            // Use available size from parent
+            let w = geo.size.width
+            let h = geo.size.height
 
-            // ---- NAME INSIDE JAR ----
-            VStack {
-                Spacer().frame(height: 120) // moves text down to the jar center
-                Text(clampedName)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.black.opacity(0.75))
-                    .shadow(color: .white.opacity(0.9), radius: 4)  // makes text readable on glass
-                Spacer()
-            }
-            .allowsHitTesting(false) // Jar remains tappable later for animations
+            ZStack {
+                // ---- JAR IMAGE (updated to jarlid) ----
+                Image("jarlid")
+                    .resizable()
+                    .scaledToFit()
+                    // Fill width, keep aspect
+                    .frame(width: w)
+                    .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
 
-            // ---- RED TRASH BUTTON (top-right) ----
-            VStack {
-                HStack {
+                // ---- NAME INSIDE JAR ----
+                VStack {
+                    // Position roughly at the visual center of the jar.
+                    // Use a proportion of the total height so it scales with size.
+                    Spacer().frame(height: h * 0.46)
+                    Text(clampedName)
+                        .font(.system(size: max(10, w * 0.06), weight: .semibold)) // scale font with width
+                        .foregroundColor(.black.opacity(0.75))
+                        .shadow(color: .white.opacity(0.9), radius: 4)  // makes text readable on glass
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(1)
                     Spacer()
-                    Button {
-                        onDelete?()
-                    } label: {
-                        Image(systemName: "trash.fill")   // <- changed from "xmark" to trash icon
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 22, height: 22)
-                            .background(
-                                Circle().fill(Color.red)
-                            )
-                            .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 2)
-                    }
-                    .buttonStyle(.plain)
-                    // Fine-tune position: closer to the jar's top-right edge
-                    .offset(x: -25, y: 25)          // +x moves right, -y moves up
-                    .padding(.trailing, 2)        // small inset from right edge
-                    .padding(.top, 2)             // small inset from top edge
                 }
-                Spacer()
+                .allowsHitTesting(false)
+
+                // ---- RED TRASH BUTTON (top-right) ----
+                if onDelete != nil {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button {
+                                onDelete?()
+                            } label: {
+                                Image(systemName: "trash.fill")
+                                    .font(.system(size: max(10, w * 0.06), weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: max(20, w * 0.11), height: max(20, w * 0.11))
+                                    .background(
+                                        Circle().fill(Color.red)
+                                    )
+                                    .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 2)
+                            }
+                            .buttonStyle(.plain)
+                            // Offset proportionally so it hugs the top-right of the jar consistently
+                            .offset(x: -w * 0.14, y: h * 0.1)
+                        }
+                        Spacer()
+                    }
+                    .padding(6)
+                    .allowsHitTesting(true)
+                }
             }
-            // You can also reduce or adjust these if you want it even tighter overall:
-            .padding(6) // keep the button inset from the edge
-            .allowsHitTesting(true)
+            // Ensure the jar content scales within the proposed size
+            .frame(width: w, height: h, alignment: .center)
         }
-        .frame(height: 260)
+        // No fixed height here; parent controls size
     }
 }
 
 struct SavingsJarView_Previews: PreviewProvider {
     static var previews: some View {
-        SavingsJarView(name: "Holiday", fillAmount: 0.25, onDelete: {})
-            .padding()
-            .previewLayout(.sizeThatFits)
+        Group {
+            SavingsJarView(name: "Holiday", fillAmount: 0.25, onDelete: {})
+                .frame(width: 200, height: 260)
+                .padding()
+                .previewLayout(.sizeThatFits)
+
+            SavingsJarView(name: "Holiday", fillAmount: 0.25, onDelete: nil)
+                .frame(width: 300, height: 360)
+                .padding()
+                .previewLayout(.sizeThatFits)
+        }
     }
 }

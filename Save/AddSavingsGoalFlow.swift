@@ -339,7 +339,7 @@ struct AddSavingsGoalFlow: View {
                     if useSchedule {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack {
-                                // Copy fix: "Everyday" for 1, otherwise "Every X days"
+                                // Copy fix: "Everyday" for 1, otherwise "Every \(intervalDays) days"
                                 Text(intervalDays == 1 ? "Everyday" : "Every \(intervalDays) days")
                                     .font(.body)
 
@@ -645,10 +645,20 @@ struct AddSavingsGoalFlow: View {
         let cleanedTarget = Double(targetAmountText.filter { $0 != "$" }) ?? 0
         let cleanedCurrent = Double(currentSavedText.filter { $0 != "$" }) ?? 0
 
+        // Persist schedule selections into the goal (optionally)
+        let shouldSaveSchedule = useSchedule
+        let savedIntervalDays: Int? = shouldSaveSchedule ? intervalDays : nil
+        let savedScheduleAmount: Double? = shouldSaveSchedule ? max(0, scheduleAmount) : nil
+        let savedStartDate: Date? = shouldSaveSchedule ? Calendar.current.startOfDay(for: startDate) : nil
+
         let newGoal = SavingsGoal(
             name: displayName,
             targetAmount: cleanedTarget,
-            currentSaved: cleanedCurrent
+            currentSaved: cleanedCurrent,
+            useSchedule: shouldSaveSchedule,
+            intervalDays: savedIntervalDays,
+            scheduleAmount: savedScheduleAmount,
+            startDate: savedStartDate
         )
 
         goals.append(newGoal)
