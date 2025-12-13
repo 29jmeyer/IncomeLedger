@@ -5,6 +5,9 @@ struct SavingsJarPage: View {
 
     @Binding var goal: SavingsGoal
 
+    // Parent-provided callback to remove a finished goal and pop back
+    var onGoalCompleted: (UUID) -> Void = { _ in }
+
     private var hasTarget: Bool {
         goal.targetAmount > 0
     }
@@ -16,6 +19,9 @@ struct SavingsJarPage: View {
 
     @State private var showMoneyEdit = false
     @State private var animationTrigger: Int = 0   // drives the jar animation
+
+    // Prevent scheduling completion multiple times
+    @State private var completionScheduled: Bool = false
 
     var body: some View {
         ZStack {
@@ -81,11 +87,33 @@ struct SavingsJarPage: View {
             MoneyEditView(goal: goal,
                           onConfirm: { updated in
                               goal = updated
+                              handleCompletionIfNeeded()
                           },
                           onConfirmedAdd: {
                               // Increment the trigger to start the animation now (only for Add)
                               animationTrigger &+= 1
                           })
+        }
+        .onAppear {
+            handleCompletionIfNeeded()
+        }
+    }
+
+    private func handleCompletionIfNeeded() {
+        // Consider goal completed only when currentSaved reaches the target (with a small epsilon).
+        let reachedByAmount = goal.currentSaved >= goal.targetAmount - 0.005
+
+        guard reachedByAmount else { return }
+
+        // Avoid scheduling multiple times if this function is called repeatedly
+        guard !completionScheduled else { return }
+        completionScheduled = true
+
+        // Delay 2.5 seconds so the coin animation can play before exit
+        let delaySeconds: Double = 2
+        DispatchQueue.main.asyncAfter(deadline: .now() + delaySeconds) {
+            onGoalCompleted(goal.id)
+            dismiss()
         }
     }
 }
@@ -104,7 +132,11 @@ struct SavingsJarPage_Previews: PreviewProvider {
             useSchedule: true,
             intervalDays: 7,
             scheduleAmount: 75,
-            startDate: Date()
+            startDate: Date(),
+            plannedEntries: [
+                SavingsPlannedEntry(date: Calendar.current.startOfDay(for: Date()), amount: 75),
+                SavingsPlannedEntry(date: Calendar.current.date(byAdding: .day, value: 7, to: Calendar.current.startOfDay(for: Date()))!, amount: 75),
+            ]
         )
 
         var body: some View {

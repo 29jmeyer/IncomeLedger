@@ -155,16 +155,62 @@ struct MoneyEditView: View {
         guard let amt = typedAmount, amt > 0 else { return }
 
         var newGoal = goal
-        switch mode {
-        case .add:
-            let allowed = min(amt, remaining)
-            newGoal.currentSaved = min(goal.currentSaved + allowed, target)
-            onConfirm(newGoal)
-            onConfirmedAdd()   // trigger animation only on add
-        case .remove:
-            let allowed = min(amt, current)
-            newGoal.currentSaved = max(goal.currentSaved - allowed, 0)
-            onConfirm(newGoal)
+
+        // If schedule exists and valid, mutate the persisted plan.
+        let hasValidSchedule = (newGoal.useSchedule ?? false) &&
+                               (newGoal.intervalDays ?? 0) > 0 &&
+                               (newGoal.scheduleAmount ?? 0) > 0
+
+        if hasValidSchedule {
+            // Ensure plan exists; if not, build full plan to completion from current state
+            if newGoal.plannedEntries == nil || newGoal.plannedEntries?.isEmpty == true {
+                newGoal.plannedEntries = SavingsSchedule.fullPlan(for: newGoal)
+            }
+
+            var plan = newGoal.plannedEntries ?? []
+
+            let per = newGoal.scheduleAmount ?? 0
+            let interval = newGoal.intervalDays ?? 0
+            let start = newGoal.startDate ?? Date()
+
+            switch mode {
+            case .add:
+                let allowed = min(amt, remaining)
+                if allowed > 0 {
+                    SavingsSchedule.applyDelta(allowed, to: &plan, intervalDays: interval, per: per, startDate: start)
+                    // Recompute currentSaved from plan: target - sum(plan amounts)
+                    let planSum = plan.reduce(0) { $0 + $1.amount }
+                    let newCurrent = max(0, newGoal.targetAmount - planSum)
+                    newGoal.currentSaved = min(newCurrent, newGoal.targetAmount)
+                    newGoal.plannedEntries = plan
+                    onConfirm(newGoal)
+                    onConfirmedAdd()
+                }
+            case .remove:
+                let allowed = min(amt, current)
+                if allowed > 0 {
+                    SavingsSchedule.applyDelta(-allowed, to: &plan, intervalDays: interval, per: per, startDate: start)
+                    // Recompute currentSaved from plan
+                    let planSum = plan.reduce(0) { $0 + $1.amount }
+                    let newCurrent = max(0, newGoal.targetAmount - planSum)
+                    newGoal.currentSaved = min(newCurrent, newGoal.targetAmount)
+                    newGoal.plannedEntries = plan
+                    onConfirm(newGoal)
+                }
+            }
+        } else {
+            // No schedule — keep previous behavior: just adjust currentSaved within limits.
+            switch mode {
+            case .add:
+                let allowed = min(amt, remaining)
+                newGoal.currentSaved = min(goal.currentSaved + allowed, target)
+                onConfirm(newGoal)
+                onConfirmedAdd()
+            case .remove:
+                let allowed = min(amt, current)
+                newGoal.currentSaved = max(goal.currentSaved - allowed, 0)
+                onConfirm(newGoal)
+            }
         }
 
         dismiss()

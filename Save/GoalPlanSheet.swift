@@ -33,38 +33,6 @@ struct GoalPlanSheet: View {
         return "\(currency) • \(every) • from \(dateText)"
     }
 
-    // UPDATED: allocate from latest dates first so earlier (most recent) ones are “removed” first
-    private func generateUpcomingPayments(limit: Int = 50) -> [(date: Date, amount: Double)] {
-        guard hasSchedule else { return [] }
-        let per = max(0, goal.scheduleAmount ?? 0)
-        let days = max(1, goal.intervalDays ?? 1)
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: goal.startDate ?? Date())
-
-        // Build forward dates up to limit (or until a reasonable cap)
-        var dates: [Date] = []
-        var cursor = start
-        for _ in 0..<limit {
-            dates.append(cursor)
-            guard let next = calendar.date(byAdding: .day, value: days, to: cursor) else { break }
-            cursor = next
-        }
-
-        // Allocate remaining from the END (latest dates) backwards
-        var remainingAmount = remaining
-        var result: [(Date, Double)] = []
-
-        for d in dates.reversed() {
-            guard remainingAmount > 0 else { break }
-            let thisAmount = min(per, remainingAmount)
-            result.append((d, thisAmount))
-            remainingAmount -= thisAmount
-        }
-
-        // We built from latest to earliest; reverse so UI still shows earliest -> latest ordering
-        return result.reversed()
-    }
-
     // MARK: - Body
 
     var body: some View {
@@ -74,7 +42,12 @@ struct GoalPlanSheet: View {
             let collapsedOffset = screenHeight - collapsedHeight
             let expandedOffset = expandedTopInset
 
-            let items = generateUpcomingPayments()
+            // Prefer persisted plan; fallback to computed if missing
+            let persisted = goal.plannedEntries?.map { ($0.date, $0.amount) } ?? []
+            let computedFallback = SavingsSchedule.computeUpcomingPayments(for: goal, maxCount: 30).map { ($0.date, $0.amount) }
+            let source = persisted.isEmpty ? computedFallback : persisted
+            let items = Array(source.prefix(30))
+
             let currentOffset = isExpanded ? expandedOffset : collapsedOffset
 
             ZStack {
@@ -119,8 +92,6 @@ struct GoalPlanSheet: View {
                     }
                 }
 
-            // IMPORTANT:
-            // When expanded -> wrap everything below in a vertical ScrollView
             if isExpanded {
                 ScrollView(.vertical, showsIndicators: true) {
                     expandedBody(items: items)
@@ -208,7 +179,6 @@ struct GoalPlanSheet: View {
                         .padding(.bottom, 8)
 
                 } else {
-                    // show only first 3 in collapsed mode
                     let preview = Array(items.prefix(3))
                     listBlock(items: preview)
                         .padding(.bottom, 8)
@@ -257,7 +227,6 @@ struct GoalPlanSheet: View {
                         .padding(.bottom, 8)
 
                 } else {
-                    // FULL list scrolls (because expandedBody is inside ScrollView)
                     listBlock(items: items)
                         .padding(.bottom, 8)
                 }

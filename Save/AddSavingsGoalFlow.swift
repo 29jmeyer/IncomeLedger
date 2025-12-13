@@ -33,7 +33,7 @@ struct AddSavingsGoalFlow: View {
     private let maxJars = 3
     @State private var showMaxReachedAlert = false
 
-    // Today start (used to restrict DatePicker to today and later)
+    // Today start (used previously to restrict DatePicker; we will no longer clamp the picker)
     private var todayStart: Date {
         Calendar.current.startOfDay(for: Date())
     }
@@ -396,10 +396,10 @@ struct AddSavingsGoalFlow: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
 
+                                // IMPORTANT: Allow any date (past or future). We removed the "in: todayStart..." clamp
                                 DatePicker(
                                     "",
                                     selection: $startDate,
-                                    in: todayStart...,
                                     displayedComponents: .date
                                 )
                                 .labelsHidden()
@@ -668,9 +668,16 @@ struct AddSavingsGoalFlow: View {
         let shouldSaveSchedule = useSchedule
         let savedIntervalDays: Int? = shouldSaveSchedule ? intervalDays : nil
         let savedScheduleAmount: Double? = shouldSaveSchedule ? max(0, scheduleAmount) : nil
-        let savedStartDate: Date? = shouldSaveSchedule ? Calendar.current.startOfDay(for: startDate) : nil
 
-        let newGoal = SavingsGoal(
+        // IMPORTANT FIX: rebuild the selected date from its exact Y/M/D components at local midnight
+        let savedStartDate: Date? = {
+            guard shouldSaveSchedule else { return nil }
+            let cal = Calendar.current
+            let comps = cal.dateComponents([.year, .month, .day], from: startDate)
+            return cal.date(from: comps)
+        }()
+
+        var newGoal = SavingsGoal(
             name: displayName,
             targetAmount: cleanedTarget,
             currentSaved: cleanedCurrent,
@@ -679,6 +686,14 @@ struct AddSavingsGoalFlow: View {
             scheduleAmount: savedScheduleAmount,
             startDate: savedStartDate
         )
+
+        // Initialize persisted plan if schedule is enabled
+        if shouldSaveSchedule,
+           let _ = savedIntervalDays,
+           let _ = savedScheduleAmount,
+           let _ = savedStartDate {
+            newGoal.plannedEntries = SavingsSchedule.fullPlan(for: newGoal)
+        }
 
         goals.append(newGoal)
         dismiss()

@@ -14,6 +14,9 @@ struct SavingsGoal: Identifiable, Codable, Equatable {
     var scheduleAmount: Double?
     var startDate: Date?
 
+    // Persisted, editable plan of remaining scheduled entries
+    var plannedEntries: [SavingsPlannedEntry]?
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -22,7 +25,8 @@ struct SavingsGoal: Identifiable, Codable, Equatable {
         useSchedule: Bool? = nil,
         intervalDays: Int? = nil,
         scheduleAmount: Double? = nil,
-        startDate: Date? = nil
+        startDate: Date? = nil,
+        plannedEntries: [SavingsPlannedEntry]? = nil
     ) {
         self.id = id
         self.name = name
@@ -32,6 +36,7 @@ struct SavingsGoal: Identifiable, Codable, Equatable {
         self.intervalDays = intervalDays
         self.scheduleAmount = scheduleAmount
         self.startDate = startDate
+        self.plannedEntries = plannedEntries
     }
 }
 
@@ -59,6 +64,9 @@ struct SaveView: View {
     // Max jars
     private let maxJars = 3
     @State private var showMaxJarsAlert = false
+
+    // Completion celebration
+    @State private var showCompletionConfetti: Bool = false
 
     // Tuning for draggable mode
     private let jarSize = CGSize(width: 160, height: 210)
@@ -248,11 +256,43 @@ struct SaveView: View {
             set: { newValue in isShowingGoalPage = newValue }
         )) {
             if let binding = selectedGoalBinding {
-                SavingsJarPage(goal: binding)
+                SavingsJarPage(goal: binding, onGoalCompleted: { id in
+                    // Remove the goal and close page, then show confetti on Save screen
+                    if let idx = goals.firstIndex(where: { $0.id == id }) {
+                        goals.remove(at: idx)
+                        normalizedPositions.removeValue(forKey: id)
+                    }
+                    isShowingGoalPage = false
+                    // Defer to next runloop to ensure we're back on Save screen before showing confetti
+                    DispatchQueue.main.async {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showCompletionConfetti = true
+                        }
+                        // Auto-hide after a short duration
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showCompletionConfetti = false
+                            }
+                        }
+                    }
+                })
             } else {
                 Text("Goal not found")
                     .font(.headline)
                     .onAppear { isShowingGoalPage = false }
+            }
+        }
+
+        // Completion confetti overlay on Save screen
+        .overlay {
+            if showCompletionConfetti {
+                GoalCompletionOverlay(
+                    message: "Congratulations on hitting your goal!",
+                    duration: 1.8
+                ) {
+                    // Nothing extra; overlay hides itself via showCompletionConfetti flag timer
+                }
+                .transition(.opacity)
             }
         }
 
@@ -431,4 +471,3 @@ struct SaveView: View {
         normalizedPositions = normalizedPositions.filter { valid.contains($0.key) }
     }
 }
-
