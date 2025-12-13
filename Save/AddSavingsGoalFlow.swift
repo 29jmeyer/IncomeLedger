@@ -30,6 +30,8 @@ struct AddSavingsGoalFlow: View {
 
     // Limits
     private let maxTargetAmount: Double = 10_000_000
+    private let maxJars = 3
+    @State private var showMaxReachedAlert = false
 
     // Today start (used to restrict DatePicker to today and later)
     private var todayStart: Date {
@@ -118,6 +120,17 @@ struct AddSavingsGoalFlow: View {
                     .padding(.horizontal, 24)
 
                 Spacer()
+            }
+
+            // Custom overlay for limit reached
+            if showMaxReachedAlert {
+                LimitReachedOverlay(
+                    title: "Limit reached",
+                    message: "You can only have up to 3 jars.",
+                    buttonTitle: "OK",
+                    onDismiss: { showMaxReachedAlert = false }
+                )
+                .zIndex(1)
             }
         }
         // When schedule gets enabled, initialize the payment plan defaults safely
@@ -356,7 +369,7 @@ struct AddSavingsGoalFlow: View {
                                             .frame(width: 32, height: 32)
                                             .background(Color.white)
                                             .clipShape(Circle())
-                                            .shadow(color: Color.black.opacity(0.08),
+                                            .shadow(color: .black.opacity(0.08),
                                                     radius: 4, x: 0, y: 2)
                                     }
 
@@ -370,7 +383,7 @@ struct AddSavingsGoalFlow: View {
                                             .frame(width: 32, height: 32)
                                             .background(Color.white)
                                             .clipShape(Circle())
-                                            .shadow(color: Color.black.opacity(0.08),
+                                            .shadow(color: .black.opacity(0.08),
                                                     radius: 4, x: 0, y: 2)
                                     }
                                 }
@@ -642,6 +655,12 @@ struct AddSavingsGoalFlow: View {
     }
 
     private func finish() {
+        // Safety: enforce max jars here too
+        if goals.count >= maxJars {
+            showMaxReachedAlert = true
+            return
+        }
+
         let cleanedTarget = Double(targetAmountText.filter { $0 != "$" }) ?? 0
         let cleanedCurrent = Double(currentSavedText.filter { $0 != "$" }) ?? 0
 

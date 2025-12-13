@@ -1,8 +1,5 @@
 import SwiftUI
 
-// Adjustable horizontal padding for the "Add more goals →" bubble
-private let bubbleHorizontalPadding: CGFloat = 18
-
 // Simple model for a savings goal.
 // Kept in this file so Save feature lives in just 2 files.
 struct SavingsGoal: Identifiable, Codable, Equatable {
@@ -12,10 +9,10 @@ struct SavingsGoal: Identifiable, Codable, Equatable {
     var currentSaved: Double
 
     // Optional schedule (persisted from AddSavingsGoalFlow when user enables it)
-    var useSchedule: Bool?            // true if user enabled a schedule
-    var intervalDays: Int?            // e.g., 7, 14, 30
-    var scheduleAmount: Double?       // amount per interval
-    var startDate: Date?              // first contribution date
+    var useSchedule: Bool?
+    var intervalDays: Int?
+    var scheduleAmount: Double?
+    var startDate: Date?
 
     init(
         id: UUID = UUID(),
@@ -53,8 +50,23 @@ struct SaveView: View {
     @State private var goalPendingDelete: SavingsGoal? = nil
     @State private var showDeleteGoalAlert: Bool = false
 
+    // Drag toggle state
+    @State private var dragEnabled: Bool = false
+
+    // Positions for draggable mode (normalized in bubble: 0...1)
+    @State private var normalizedPositions: [UUID: CGPoint] = [:]
+
+    // Max jars
+    private let maxJars = 3
+    @State private var showMaxJarsAlert = false
+
+    // Tuning for draggable mode
+    private let jarSize = CGSize(width: 160, height: 210)
+    private let tapMovementThreshold: CGFloat = 6
+
     // MARK: - Persistence
     private let goalsStorageKey = "SaveView.goals"
+    private let positionsStorageKey = "SaveView.normalizedPositions"
 
     private func loadGoals() {
         guard let data = UserDefaults.standard.data(forKey: goalsStorageKey) else { return }
@@ -75,6 +87,27 @@ struct SaveView: View {
         }
     }
 
+    private func loadPositions() {
+        guard let data = UserDefaults.standard.data(forKey: positionsStorageKey) else { return }
+        do {
+            let decoded = try JSONDecoder().decode([UUID: CGPoint].self, from: data)
+            // Keep only positions for existing goals
+            let validIds = Set(goals.map { $0.id })
+            normalizedPositions = decoded.filter { validIds.contains($0.key) }
+        } catch {
+            print("Failed to decode positions from UserDefaults: \(error)")
+        }
+    }
+
+    private func savePositions() {
+        do {
+            let data = try JSONEncoder().encode(normalizedPositions)
+            UserDefaults.standard.set(data, forKey: positionsStorageKey)
+        } catch {
+            print("Failed to encode positions to UserDefaults: \(error)")
+        }
+    }
+
     // Helper: index of selected goal
     private var selectedIndex: Int? {
         guard let id = selectedGoalId else { return nil }
@@ -92,69 +125,52 @@ struct SaveView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+            // Static layout in both modes (no page scrolling)
+            VStack(alignment: .leading, spacing: 12) {
+                // Header row
+                headerRow
 
-                    // Row: "Add more goals →" pill + green +
-                    HStack(spacing: 12) {
-                        Spacer()
+                // Drag toggle directly under header, right-aligned
+                HStack {
+                    Spacer()
+                    dragTogglePill
+                }
+                .padding(.horizontal, 24)
 
-                        // White pill with GREEN text & arrow (shrinks to fit content)
-                        HStack(spacing: 6) {
-                            Text("Add more goals")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.green)
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.green)
-                        }
-                        .padding(.horizontal, bubbleHorizontalPadding)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemBackground))
-                        .clipShape(Capsule())
-                        .shadow(color: Color.black.opacity(0.06),
-                                radius: 8, x: 0, y: 4)
-                        .fixedSize(horizontal: true, vertical: false)
+                // Draggable canvas uses normalized positions; it converts to absolute internally.
+                DraggableCanvas(
+                    ids: goals.map { $0.id },
+                    positions: $normalizedPositions,
+                    itemSize: jarSize,
+                    bubbleInsets: saveViewBubbleInsets,
+                    dragEnabled: dragEnabled,
+                    tapMovementThreshold: tapMovementThreshold,
+                    bubbleCornerRadius: 18
+                ) { id in
+                    if let goal = goals.first(where: { $0.id == id }) {
+                        let ratio = goal.targetAmount == 0 ? 0 :
+                            min(max(goal.currentSaved / goal.targetAmount, 0), 1)
 
-                        // Green + bubble (button)
-                        Button(action: {
-                            showingAddGoal = true
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 42, height: 42)
-                                .background(Color.green)
-                                .clipShape(Circle())
-                                .shadow(color: Color.green.opacity(0.4),
-                                        radius: 10, x: 0, y: 6)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-
-                    // Jars grid/list
-                    if goals.isEmpty {
-                        Spacer(minLength: 40)
-                    } else {
-                        let columns = [
-                            GridItem(.adaptive(minimum: 120), spacing: 20)
-                        ]
-                        LazyVGrid(columns: columns, spacing: 24) {
-                            ForEach(goals) { goal in
-                                let ratio = goal.targetAmount == 0 ? 0 :
-                                    goal.currentSaved / goal.targetAmount
-
+                        Group {
+                            if dragEnabled {
+                                SavingsJarView(
+                                    name: goal.name,
+                                    fillAmount: ratio,
+                                    onDelete: {
+                                        goalPendingDelete = goal
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                            showDeleteGoalAlert = true
+                                        }
+                                    }
+                                )
+                            } else {
                                 Button {
-                                    // Set the selection
+                                    // Set the selection then present
                                     selectedGoalId = goal.id
-                                    // Defer presentation to next runloop to avoid race with state updates
                                     DispatchQueue.main.async {
-                                        // Only present if the binding is actually available
                                         if selectedGoalBinding != nil {
                                             isShowingGoalPage = true
                                         } else {
-                                            // As a fallback, try again shortly if needed
                                             DispatchQueue.main.async {
                                                 if selectedGoalBinding != nil {
                                                     isShowingGoalPage = true
@@ -163,43 +179,29 @@ struct SaveView: View {
                                         }
                                     }
                                 } label: {
-                                    VStack(spacing: 8) {
-                                        SavingsJarView(
-                                            name: goal.name,
-                                            fillAmount: ratio,
-                                            onDelete: {
-                                                goalPendingDelete = goal
-                                                withAnimation(.spring(response: 0.35,
-                                                                      dampingFraction: 0.85)) {
-                                                    showDeleteGoalAlert = true
-                                                }
+                                    SavingsJarView(
+                                        name: goal.name,
+                                        fillAmount: ratio,
+                                        onDelete: {
+                                            goalPendingDelete = goal
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                                showDeleteGoalAlert = true
                                             }
-                                        )
-                                        .frame(width: 160, height: 210)
-                                    }
+                                        }
+                                    )
                                 }
                                 .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        goalPendingDelete = goal
-                                        withAnimation(.spring(response: 0.35,
-                                                              dampingFraction: 0.85)) {
-                                            showDeleteGoalAlert = true
-                                        }
-                                    } label: {
-                                        Label("Delete goal", systemImage: "trash")
-                                    }
-                                }
                             }
                         }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 8)
-                        .padding(.bottom, 24)
+                    } else {
+                        EmptyView()
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.clear)
+                .frame(height: 560)
+
+                Spacer(minLength: 16)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Color.white)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -227,6 +229,7 @@ struct SaveView: View {
                     onDelete: {
                         if let index = goals.firstIndex(where: { $0.id == goal.id }) {
                             goals.remove(at: index)
+                            normalizedPositions.removeValue(forKey: goal.id)
                         }
                     },
                     onDismiss: {
@@ -240,7 +243,6 @@ struct SaveView: View {
         }
 
         // Present the jar page FULL-SCREEN with a binding to the selected goal
-        // Guard: only present when we have a valid binding to avoid "Goal not found".
         .fullScreenCover(isPresented: Binding(
             get: { isShowingGoalPage && selectedGoalBinding != nil },
             set: { newValue in isShowingGoalPage = newValue }
@@ -248,19 +250,103 @@ struct SaveView: View {
             if let binding = selectedGoalBinding {
                 SavingsJarPage(goal: binding)
             } else {
-                // If it somehow becomes nil during presentation, dismiss safely
                 Text("Goal not found")
                     .font(.headline)
                     .onAppear { isShowingGoalPage = false }
             }
         }
 
+        // Max jars alert
+        .alert("Limit reached", isPresented: $showMaxJarsAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You can only have up to 3 jars.")
+        }
+
         // Persistence hooks
-        .onAppear { loadGoals() }
-        .onChange(of: goals) { _ in saveGoals() }
+        .onAppear {
+            loadGoals()
+            loadPositions()
+            pruneOrphanPositions()
+            savePositions()
+        }
+        .onChange(of: goals) { _ in
+            saveGoals()
+            pruneOrphanPositions()
+            savePositions()
+        }
+        .onChange(of: normalizedPositions) { _ in
+            savePositions()
+        }
     }
 
-    // Reusable delete dialog overlay
+    // MARK: - Header rows
+
+    private var headerRow: some View {
+        HStack(spacing: 12) {
+            Spacer()
+
+            HStack(spacing: 6) {
+                Text("Add more goals")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.green)
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.green)
+            }
+            .padding(.horizontal, bubbleHorizontalPadding)
+            .padding(.vertical, 12)
+            .background(Color(.systemBackground))
+            .clipShape(Capsule())
+            .shadow(color: Color.black.opacity(0.06),
+                    radius: 8, x: 0, y: 4)
+            .fixedSize(horizontal: true, vertical: false)
+
+            Button(action: {
+                if goals.count >= maxJars {
+                    showMaxJarsAlert = true
+                } else {
+                    showingAddGoal = true
+                }
+            }) {
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 42, height: 42)
+                    .background(Color.green)
+                    .clipShape(Circle())
+                    .shadow(color: Color.green.opacity(0.4),
+                            radius: 10, x: 0, y: 6)
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 16)
+    }
+
+    private var dragTogglePill: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                dragEnabled.toggle()
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: dragEnabled ? "hand.point.up.left.fill" : "hand.tap.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                Text(dragEnabled ? "Drag on" : "Tap on")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(dragEnabled ? Color.green.opacity(0.9) : Color.gray.opacity(0.2))
+            .foregroundColor(dragEnabled ? .white : .primary)
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(dragEnabled ? "Drag mode on" : "Drag mode off")
+    }
+
+    // MARK: - Delete dialog overlay
+
     @ViewBuilder
     private func deleteDialogOverlay(
         title: String,
@@ -337,4 +423,12 @@ struct SaveView: View {
             .transition(.scale(scale: 0.95).combined(with: .opacity))
         }
     }
+
+    // MARK: - Helpers
+
+    private func pruneOrphanPositions() {
+        let valid = Set(goals.map { $0.id })
+        normalizedPositions = normalizedPositions.filter { valid.contains($0.key) }
+    }
 }
+
